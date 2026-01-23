@@ -82,22 +82,11 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
         // 加载视频缩略图（异步）
         loadThumbnail(videoFile, holder.videoThumbnail);
 
-        // 播放按钮
+        // 播放按钮 - 使用内置视频播放器
         holder.btnPlay.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri = androidx.core.content.FileProvider.getUriForFile(
-                    context,
-                    context.getPackageName() + ".fileprovider",
-                    videoFile
-            );
-            intent.setDataAndType(uri, "video/mp4");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            try {
-                context.startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(context, "无法播放视频: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            Intent intent = new Intent(context, VideoPlayerActivity.class);
+            intent.putExtra("video_path", videoFile.getAbsolutePath());
+            context.startActivity(intent);
         });
 
         // 删除按钮

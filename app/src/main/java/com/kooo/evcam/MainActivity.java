@@ -64,9 +64,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private AutoFitTextureView textureFront, textureBack, textureLeft, textureRight;
-    private Button btnStartRecord, btnStopRecord, btnTakePhoto;
+    private Button btnStartRecord, btnExit, btnTakePhoto;
     private MultiCameraManager cameraManager;
     private int textureReadyCount = 0;  // 记录准备好的TextureView数量
+    private boolean isRecording = false;  // 录制状态标志
 
     // 录制按钮闪烁动画相关
     private android.os.Handler blinkHandler;
@@ -164,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         textureLeft = findViewById(R.id.texture_left);
         textureRight = findViewById(R.id.texture_right);
         btnStartRecord = findViewById(R.id.btn_start_record);
-        btnStopRecord = findViewById(R.id.btn_stop_record);
+        btnExit = findViewById(R.id.btn_exit);
         btnTakePhoto = findViewById(R.id.btn_take_photo);
 
         // 菜单按钮点击事件
@@ -176,8 +177,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnStartRecord.setOnClickListener(v -> startRecording());
-        btnStopRecord.setOnClickListener(v -> stopRecording());
+        // 录制按钮：点击切换录制状态
+        btnStartRecord.setOnClickListener(v -> toggleRecording());
+
+        // 退出按钮：完全退出应用
+        btnExit.setOnClickListener(v -> exitApp());
+
         btnTakePhoto.setOnClickListener(v -> takePicture());
 
         // 为每个TextureView添加Surface监听器
@@ -624,12 +629,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 切换录制状态（开始/停止）
+     */
+    private void toggleRecording() {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+
     private void startRecording() {
         if (cameraManager != null && !cameraManager.isRecording()) {
             boolean success = cameraManager.startRecording();
             if (success) {
-                btnStartRecord.setEnabled(false);
-                btnStopRecord.setEnabled(true);
+                isRecording = true;
 
                 // 开始闪烁动画
                 startBlinkAnimation();
@@ -645,8 +660,7 @@ public class MainActivity extends AppCompatActivity {
     private void stopRecording() {
         if (cameraManager != null) {
             cameraManager.stopRecording();
-            btnStartRecord.setEnabled(true);
-            btnStopRecord.setEnabled(false);
+            isRecording = false;
 
             // 停止闪烁动画，恢复红色
             stopBlinkAnimation();
@@ -654,6 +668,32 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "录制已停止", Toast.LENGTH_SHORT).show();
             Log.d(TAG, "Recording stopped");
         }
+    }
+
+    /**
+     * 完全退出应用（包括后台进程）
+     */
+    private void exitApp() {
+        // 停止录制（如果正在录制）
+        if (isRecording) {
+            stopRecording();
+        }
+
+        // 停止钉钉服务
+        if (dingTalkStreamManager != null) {
+            dingTalkStreamManager.stop();
+        }
+
+        // 释放摄像头资源
+        if (cameraManager != null) {
+            cameraManager.release();
+        }
+
+        // 结束所有Activity并退出应用
+        finishAffinity();
+
+        // 完全退出进程
+        System.exit(0);
     }
 
     private void startBlinkAnimation() {

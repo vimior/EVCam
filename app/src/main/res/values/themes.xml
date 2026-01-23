@@ -16,4 +16,12 @@
     </style>
 
     <style name="Theme.Cam" parent="Base.Theme.Cam" />
+
+    <!-- 全屏播放器主题 -->
+    <style name="Theme.Cam.Fullscreen" parent="Theme.Cam">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+    </style>
 </resources>

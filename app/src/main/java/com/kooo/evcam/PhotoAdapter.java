@@ -80,22 +80,11 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         // 加载照片缩略图（异步）
         loadThumbnail(photoFile, holder.photoThumbnail);
 
-        // 查看按钮
+        // 查看按钮 - 使用内置图片查看器
         holder.btnView.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri = androidx.core.content.FileProvider.getUriForFile(
-                    context,
-                    context.getPackageName() + ".fileprovider",
-                    photoFile
-            );
-            intent.setDataAndType(uri, "image/*");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            try {
-                context.startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(context, "无法查看照片: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            Intent intent = new Intent(context, PhotoViewerActivity.class);
+            intent.putExtra("photo_path", photoFile.getAbsolutePath());
+            context.startActivity(intent);
         });
 
         // 删除按钮
