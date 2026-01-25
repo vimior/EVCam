@@ -421,7 +421,6 @@ gradlew.bat connectedAndroidTest
 
 ### 商业使用
 - 💼 如需商业授权，请联系作者获取商业许可证
-- 📧 微信：greenteacher46（请备注"EVCam商业合作"）
 
 详细条款请参阅 [LICENSE](LICENSE) 文件。
 
@@ -444,8 +443,3 @@ gradlew.bat connectedAndroidTest
 - **wechat**: greenteacher46 (请备注来意)
 
 ---
-
-<div align="center">
-  <p>Made with ❤️ by EVCam Team</p>
-  <p>© 2026 EVCam. All rights reserved.</p>
-</div>
