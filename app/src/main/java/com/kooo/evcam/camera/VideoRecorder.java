@@ -20,6 +20,7 @@ public class VideoRecorder {
 
     private final String cameraId;
     private MediaRecorder mediaRecorder;
+    private Surface cachedSurface;  // 缓存的录制 Surface，确保整个录制周期使用同一个对象
     private RecordCallback callback;
     private boolean isRecording = false;
     private boolean waitingForSessionReconfiguration = false;  // 等待会话重新配置
@@ -52,10 +53,17 @@ public class VideoRecorder {
     }
 
     public Surface getSurface() {
+        // 优先返回缓存的 Surface，确保传给 CameraCaptureSession 的是同一个对象
+        if (cachedSurface != null) {
+            AppLog.d(TAG, "Camera " + cameraId + " getSurface (cached): " + cachedSurface + ", isValid=" + cachedSurface.isValid());
+            return cachedSurface;
+        }
+        // 如果没有缓存，尝试从 MediaRecorder 获取并缓存
         if (mediaRecorder != null) {
             Surface surface = mediaRecorder.getSurface();
             if (surface != null) {
-                AppLog.d(TAG, "Camera " + cameraId + " getSurface: " + surface + ", isValid=" + surface.isValid());
+                cachedSurface = surface;  // 缓存起来
+                AppLog.d(TAG, "Camera " + cameraId + " getSurface (new, now cached): " + surface + ", isValid=" + surface.isValid());
             } else {
                 AppLog.w(TAG, "Camera " + cameraId + " getSurface returned NULL");
             }
@@ -138,11 +146,12 @@ public class VideoRecorder {
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.prepare();
         
-        // 验证 Surface 是否有效（调试用）
-        Surface surface = mediaRecorder.getSurface();
-        if (surface != null) {
-            AppLog.d(TAG, "Camera " + cameraId + " MediaRecorder Surface created: " + surface + 
-                    ", isValid=" + surface.isValid());
+        // 准备后立即缓存 Surface，确保整个录制周期使用同一个对象
+        // 这对于某些车机平台很重要，因为 Camera2 API 可能无法识别不同的 Surface 包装对象
+        cachedSurface = mediaRecorder.getSurface();
+        if (cachedSurface != null) {
+            AppLog.d(TAG, "Camera " + cameraId + " MediaRecorder Surface created and cached: " + cachedSurface + 
+                    ", isValid=" + cachedSurface.isValid());
         } else {
             AppLog.e(TAG, "Camera " + cameraId + " MediaRecorder Surface is NULL after prepare!");
         }
@@ -222,14 +231,13 @@ public class VideoRecorder {
             return false;
         }
 
-        // 诊断：检查 Surface 状态
-        Surface surface = mediaRecorder.getSurface();
-        if (surface == null) {
-            AppLog.e(TAG, "Camera " + cameraId + " CRITICAL: Surface is NULL before start!");
-        } else if (!surface.isValid()) {
-            AppLog.e(TAG, "Camera " + cameraId + " CRITICAL: Surface is INVALID before start! Surface=" + surface);
+        // 诊断：检查缓存的 Surface 状态
+        if (cachedSurface == null) {
+            AppLog.e(TAG, "Camera " + cameraId + " CRITICAL: Cached Surface is NULL before start!");
+        } else if (!cachedSurface.isValid()) {
+            AppLog.e(TAG, "Camera " + cameraId + " CRITICAL: Cached Surface is INVALID before start! Surface=" + cachedSurface);
         } else {
-            AppLog.d(TAG, "Camera " + cameraId + " Surface OK before start: " + surface + ", isValid=true");
+            AppLog.d(TAG, "Camera " + cameraId + " Cached Surface OK before start: " + cachedSurface + ", isValid=true");
         }
 
         try {
@@ -239,11 +247,10 @@ public class VideoRecorder {
             lastFileSize = 0;  // 重置文件大小计数
             AppLog.d(TAG, "Camera " + cameraId + " started recording segment " + segmentIndex);
             
-            // 诊断：start() 后再次检查 Surface 状态
-            Surface surfaceAfterStart = mediaRecorder.getSurface();
-            if (surfaceAfterStart != null) {
-                AppLog.d(TAG, "Camera " + cameraId + " Surface after start: " + surfaceAfterStart + 
-                        ", isValid=" + surfaceAfterStart.isValid());
+            // 诊断：start() 后再次检查缓存的 Surface 状态（应该是同一个对象）
+            if (cachedSurface != null) {
+                AppLog.d(TAG, "Camera " + cameraId + " Cached Surface after start: " + cachedSurface + 
+                        ", isValid=" + cachedSurface.isValid());
             }
             
             if (callback != null && segmentIndex == 0) {
@@ -530,6 +537,9 @@ public class VideoRecorder {
      * 释放录制器
      */
     private void releaseMediaRecorder() {
+        // 先清空缓存的 Surface
+        cachedSurface = null;
+        
         if (mediaRecorder != null) {
             mediaRecorder.reset();
             mediaRecorder.release();
