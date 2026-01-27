@@ -439,6 +439,20 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         
+        // 仅针对手机布局添加沉浸式状态栏兼容
+        String carModel = appConfig.getCarModel();
+        if (AppConfig.CAR_MODEL_PHONE.equals(carModel)) {
+            View mainLayout = findViewById(R.id.main);
+            if (mainLayout != null) {
+                final int originalPaddingTop = mainLayout.getPaddingTop();
+                androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
+                    int statusBarHeight = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars()).top;
+                    v.setPadding(v.getPaddingLeft(), statusBarHeight + originalPaddingTop, v.getPaddingRight(), v.getPaddingBottom());
+                    return insets;
+                });
+                androidx.core.view.ViewCompat.requestApplyInsets(mainLayout);
+            }
+        }
     }
 
     private void initViews() {
