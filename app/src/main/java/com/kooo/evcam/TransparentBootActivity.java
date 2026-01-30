@@ -53,12 +53,31 @@ public class TransparentBootActivity extends Activity {
         KeepAliveManager.startKeepAliveWork(this);
         AppLog.d(TAG, "WorkManager 保活任务已启动");
         
-        // 3. 检查是否需要启动远程查看服务
+        // 3. 检查是否需要启动 MainActivity
+        // 满足以下任一条件时启动：
+        // - 钉钉远程查看服务配置好且启用自动启动
+        // - 用户启用了"启动自动录制"功能
+        // - 用户启用了悬浮窗功能（方便快速访问）
         DingTalkConfig dingTalkConfig = new DingTalkConfig(this);
-        if (dingTalkConfig.isConfigured() && dingTalkConfig.isAutoStart()) {
-            AppLog.d(TAG, "远程查看服务配置为自动启动，启动 MainActivity（后台模式）...");
+        AppConfig appConfig = new AppConfig(this);
+        
+        boolean shouldStartDingTalk = dingTalkConfig.isConfigured() && dingTalkConfig.isAutoStart();
+        boolean shouldAutoRecord = appConfig.isAutoStartRecording();
+        boolean shouldShowFloatingWindow = appConfig.isFloatingWindowEnabled();
+        
+        if (shouldStartDingTalk || shouldAutoRecord || shouldShowFloatingWindow) {
+            if (shouldStartDingTalk) {
+                AppLog.d(TAG, "远程查看服务配置为自动启动");
+            }
+            if (shouldAutoRecord) {
+                AppLog.d(TAG, "启动自动录制功能已启用");
+            }
+            if (shouldShowFloatingWindow) {
+                AppLog.d(TAG, "悬浮窗功能已启用");
+            }
+            AppLog.d(TAG, "启动 MainActivity（后台模式）...");
             
-            // 启动 MainActivity 初始化远程查看服务（后台模式）
+            // 启动 MainActivity 初始化服务（后台模式）
             Intent mainIntent = new Intent(this, MainActivity.class);
             mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
             mainIntent.putExtra("auto_start_from_boot", true);
@@ -67,7 +86,7 @@ public class TransparentBootActivity extends Activity {
             
             AppLog.d(TAG, "MainActivity 已启动（后台模式）");
         } else {
-            AppLog.d(TAG, "远程查看服务未配置或未启用自动启动，仅保持后台运行");
+            AppLog.d(TAG, "无需启动 MainActivity（远程查看/自动录制/悬浮窗均未启用），仅保持后台运行");
         }
     }
     
