@@ -169,7 +169,7 @@
                 <LinearLayout
                     android:id="@+id/multi_view_layout"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:background="@color/preview_grid_divider">
@@ -177,8 +177,10 @@
                     <!-- 上排：前、后 -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center">
 
                     <com.kooo.evcam.AspectRatioFrameLayout
                         android:id="@+id/frame_front"
@@ -266,8 +268,10 @@
                     <!-- 下排：左、右 -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center">
 
                     <com.kooo.evcam.AspectRatioFrameLayout
                         android:id="@+id/frame_left"
