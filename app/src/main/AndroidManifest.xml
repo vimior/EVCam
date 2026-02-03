@@ -116,9 +116,15 @@
             android:name=".FloatingWindowService"
             android:exported="false" />
 
-        <!-- 副屏显示服务 -->
+        <!-- 补盲选项服务 (副屏显示+主屏悬浮窗) -->
         <service
-            android:name=".SecondaryDisplayService"
+            android:name=".BlindSpotService"
+            android:exported="false" />
+
+        <activity
+            android:name=".LogcatViewerActivity"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+            android:screenOrientation="landscape"
             android:exported="false" />
 
         <!-- 无障碍服务：用于保活 -->

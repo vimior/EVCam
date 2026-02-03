@@ -73,6 +73,12 @@ public class CameraForegroundService extends Service {
                     FloatingWindowService.start(this);
                 }
                 
+                // 启动补盲选项服务 (副屏/主屏悬浮窗/转向灯联动)
+                if (appConfig.isSecondaryDisplayEnabled() || appConfig.isMainFloatingEnabled() || appConfig.isTurnSignalLinkageEnabled()) {
+                    AppLog.d(TAG, "补盲选项已启用，从 Service 启动...");
+                    BlindSpotService.update(this);
+                }
+                
                 // 如果启用了自动录制，启动 MainActivity
                 // 这确保杀后台重启后也能自动录制（与开机启动行为一致）
                 if (appConfig.isAutoStartRecording()) {

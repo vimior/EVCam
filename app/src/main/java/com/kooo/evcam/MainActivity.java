@@ -461,6 +461,12 @@ public class MainActivity extends AppCompatActivity implements WechatRemoteManag
                 FloatingWindowService.sendAppForegroundState(this, true);
             }, 500);
         }
+
+        // 启动补盲选项服务 (副屏/主屏悬浮窗/转向灯联动)
+        if (appConfig.isSecondaryDisplayEnabled() || appConfig.isMainFloatingEnabled() || appConfig.isTurnSignalLinkageEnabled()) {
+            BlindSpotService.update(this);
+            AppLog.d(TAG, "补盲选项服务已启动");
+        }
         
         // 初始化息屏录制检测
         initScreenStateReceiver();
@@ -1684,6 +1690,19 @@ public class MainActivity extends AppCompatActivity implements WechatRemoteManag
     }
 
     /**
+     * 切换侧边栏的打开/关闭状态
+     */
+    public void toggleDrawer() {
+        if (drawerLayout != null) {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        }
+    }
+
+    /**
      * 设置导航抽屉
      */
     private void setupNavigationDrawer() {
@@ -1718,8 +1737,8 @@ public class MainActivity extends AppCompatActivity implements WechatRemoteManag
                 // 显示心跳推图界面
                 showHeartbeatInterface();
             } else if (itemId == R.id.nav_secondary_display) {
-                // 显示副屏显示界面
-                showSecondaryDisplayInterface();
+                // 显示补盲选项界面
+                showBlindSpotInterface();
             } else if (itemId == R.id.nav_settings) {
                 showSettingsInterface();
             }
@@ -2202,17 +2221,17 @@ public class MainActivity extends AppCompatActivity implements WechatRemoteManag
     }
 
     /**
-     * 显示副屏显示设置界面
+     * 显示补盲选项设置界面
      */
-    private void showSecondaryDisplayInterface() {
+    private void showBlindSpotInterface() {
         // 隐藏录制布局，显示Fragment容器
         recordingLayout.setVisibility(View.GONE);
         fragmentContainer.setVisibility(View.VISIBLE);
 
-        // 显示SecondaryDisplaySettingsFragment
+        // 显示BlindSpotSettingsFragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.fragment_container, new SecondaryDisplaySettingsFragment());
+        transaction.replace(R.id.fragment_container, new BlindSpotSettingsFragment());
         transaction.commit();
     }
 

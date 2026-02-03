@@ -50,7 +50,7 @@ public class AppConfig {
     // 录制状态显示配置
     private static final String KEY_RECORDING_STATS_ENABLED = "recording_stats_enabled";  // 录制状态显示开关
     
-    // 副屏显示配置
+    // 补盲选项配置 (原副屏显示)
     private static final String KEY_SECONDARY_DISPLAY_ENABLED = "secondary_display_enabled";  // 副屏显示开关
     private static final String KEY_SECONDARY_DISPLAY_CAMERA = "secondary_display_camera";    // 副屏显示的摄像头位置
     private static final String KEY_SECONDARY_DISPLAY_ID = "secondary_display_id";            // 副屏 Display ID
@@ -61,6 +61,24 @@ public class AppConfig {
     private static final String KEY_SECONDARY_DISPLAY_ROTATION = "secondary_display_rotation"; // 副屏旋转角度
     private static final String KEY_SECONDARY_DISPLAY_BORDER = "secondary_display_border";    // 是否显示白边框
     private static final String KEY_SECONDARY_DISPLAY_ORIENTATION = "secondary_display_orientation"; // 屏幕方向（0/90/180/270）
+
+    // 主屏悬浮窗配置 (补盲选项新增)
+    private static final String KEY_MAIN_FLOATING_ENABLED = "main_floating_enabled";          // 主屏悬浮窗开关
+    private static final String KEY_MAIN_FLOATING_CAMERA = "main_floating_camera";            // 主屏悬浮窗摄像头
+    private static final String KEY_MAIN_FLOATING_X = "main_floating_x";                      // 主屏悬浮窗X位置
+    private static final String KEY_MAIN_FLOATING_Y = "main_floating_y";                      // 主屏悬浮窗Y位置
+    private static final String KEY_MAIN_FLOATING_WIDTH = "main_floating_width";              // 主屏悬浮窗宽度
+    private static final String KEY_MAIN_FLOATING_HEIGHT = "main_floating_height";            // 主屏悬浮窗高度
+
+    // 转向灯联动配置 (补盲选项新增)
+    private static final String KEY_TURN_SIGNAL_LINKAGE_ENABLED = "turn_signal_linkage_enabled"; // 转向灯联动开关
+    private static final String KEY_TURN_SIGNAL_TIMEOUT = "turn_signal_timeout";               // 转向灯熄灭后延迟消失时间 (秒)
+    private static final String KEY_TURN_SIGNAL_REUSE_MAIN_FLOATING = "turn_signal_reuse_main_floating"; // 是否复用主屏悬浮窗
+    private static final String KEY_TURN_SIGNAL_FLOATING_X = "turn_signal_floating_x";          // 独立补盲悬浮窗X
+    private static final String KEY_TURN_SIGNAL_FLOATING_Y = "turn_signal_floating_y";          // 独立补盲悬浮窗Y
+    private static final String KEY_TURN_SIGNAL_FLOATING_WIDTH = "turn_signal_floating_width";  // 独立补盲悬浮窗宽度
+    private static final String KEY_TURN_SIGNAL_FLOATING_HEIGHT = "turn_signal_floating_height"; // 独立补盲悬浮窗高度
+    private static final String KEY_TURN_SIGNAL_FLOATING_ROTATION = "turn_signal_floating_rotation"; // 独立补盲悬浮窗旋转
     
     // 时间角标配置
     private static final String KEY_TIMESTAMP_WATERMARK_ENABLED = "timestamp_watermark_enabled";  // 时间角标开关
@@ -1311,7 +1329,7 @@ public class AppConfig {
         return prefs.getBoolean(KEY_RECORDING_STATS_ENABLED, true);
     }
     
-    // ==================== 副屏显示配置相关方法 ====================
+    // ==================== 补盲选项配置相关方法 (原副屏显示) ====================
     
     /**
      * 设置副屏显示开关
@@ -1406,6 +1424,134 @@ public class AppConfig {
     
     public int getSecondaryDisplayOrientation() {
         return prefs.getInt(KEY_SECONDARY_DISPLAY_ORIENTATION, 0);
+    }
+
+    // ==================== 主屏悬浮窗配置相关方法 ====================
+
+    /**
+     * 设置主屏悬浮窗开关
+     */
+    public void setMainFloatingEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_MAIN_FLOATING_ENABLED, enabled).apply();
+        AppLog.d(TAG, "主屏悬浮窗设置: " + (enabled ? "启用" : "禁用"));
+    }
+
+    public boolean isMainFloatingEnabled() {
+        return prefs.getBoolean(KEY_MAIN_FLOATING_ENABLED, false);
+    }
+
+    /**
+     * 设置主屏悬浮窗显示的摄像头位置
+     */
+    public void setMainFloatingCamera(String position) {
+        prefs.edit().putString(KEY_MAIN_FLOATING_CAMERA, position).apply();
+    }
+
+    public String getMainFloatingCamera() {
+        return prefs.getString(KEY_MAIN_FLOATING_CAMERA, "front");
+    }
+
+    /**
+     * 设置主屏悬浮窗位置和大小
+     */
+    public void setMainFloatingBounds(int x, int y, int width, int height) {
+        prefs.edit()
+            .putInt(KEY_MAIN_FLOATING_X, x)
+            .putInt(KEY_MAIN_FLOATING_Y, y)
+            .putInt(KEY_MAIN_FLOATING_WIDTH, width)
+            .putInt(KEY_MAIN_FLOATING_HEIGHT, height)
+            .apply();
+    }
+
+    public int getMainFloatingX() {
+        return prefs.getInt(KEY_MAIN_FLOATING_X, 100);
+    }
+
+    public int getMainFloatingY() {
+        return prefs.getInt(KEY_MAIN_FLOATING_Y, 100);
+    }
+
+    public int getMainFloatingWidth() {
+        return prefs.getInt(KEY_MAIN_FLOATING_WIDTH, 480);
+    }
+
+    public int getMainFloatingHeight() {
+        return prefs.getInt(KEY_MAIN_FLOATING_HEIGHT, 320);
+    }
+
+    // ==================== 转向灯联动配置相关方法 ====================
+
+    /**
+     * 设置转向灯联动开关
+     */
+    public void setTurnSignalLinkageEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_TURN_SIGNAL_LINKAGE_ENABLED, enabled).apply();
+        AppLog.d(TAG, "转向灯联动设置: " + (enabled ? "启用" : "禁用"));
+    }
+
+    public boolean isTurnSignalLinkageEnabled() {
+        return prefs.getBoolean(KEY_TURN_SIGNAL_LINKAGE_ENABLED, false);
+    }
+
+    /**
+     * 设置转向灯熄灭后的延迟消失时间（秒）
+     */
+    public void setTurnSignalTimeout(int seconds) {
+        prefs.edit().putInt(KEY_TURN_SIGNAL_TIMEOUT, seconds).apply();
+    }
+
+   public int getTurnSignalTimeout() {
+        return prefs.getInt(KEY_TURN_SIGNAL_TIMEOUT, 10);
+    }
+
+    /**
+     * 设置是否复用主屏悬浮窗
+     */
+    public void setTurnSignalReuseMainFloating(boolean reuse) {
+        prefs.edit().putBoolean(KEY_TURN_SIGNAL_REUSE_MAIN_FLOATING, reuse).apply();
+    }
+
+    public boolean isTurnSignalReuseMainFloating() {
+        return prefs.getBoolean(KEY_TURN_SIGNAL_REUSE_MAIN_FLOATING, true);
+    }
+
+    /**
+     * 设置独立补盲悬浮窗位置和大小
+     */
+    public void setTurnSignalFloatingBounds(int x, int y, int width, int height) {
+        prefs.edit()
+            .putInt(KEY_TURN_SIGNAL_FLOATING_X, x)
+            .putInt(KEY_TURN_SIGNAL_FLOATING_Y, y)
+            .putInt(KEY_TURN_SIGNAL_FLOATING_WIDTH, width)
+            .putInt(KEY_TURN_SIGNAL_FLOATING_HEIGHT, height)
+            .apply();
+    }
+
+    public int getTurnSignalFloatingX() {
+        return prefs.getInt(KEY_TURN_SIGNAL_FLOATING_X, 200);
+    }
+
+    public int getTurnSignalFloatingY() {
+        return prefs.getInt(KEY_TURN_SIGNAL_FLOATING_Y, 200);
+    }
+
+    public int getTurnSignalFloatingWidth() {
+        return prefs.getInt(KEY_TURN_SIGNAL_FLOATING_WIDTH, 640);
+    }
+
+    public int getTurnSignalFloatingHeight() {
+        return prefs.getInt(KEY_TURN_SIGNAL_FLOATING_HEIGHT, 360);
+    }
+
+    /**
+     * 设置独立补盲悬浮窗旋转
+     */
+    public void setTurnSignalFloatingRotation(int rotation) {
+        prefs.edit().putInt(KEY_TURN_SIGNAL_FLOATING_ROTATION, rotation).apply();
+    }
+
+    public int getTurnSignalFloatingRotation() {
+        return prefs.getInt(KEY_TURN_SIGNAL_FLOATING_ROTATION, 0);
     }
     
     // ==================== 时间角标配置相关方法 ====================
