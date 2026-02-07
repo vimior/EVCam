@@ -2660,8 +2660,8 @@ public class MainActivity extends AppCompatActivity implements WechatRemoteManag
             // 只有2个摄像头，复用到四个位置
             // 注意：参数顺序必须与 initCameras(frontId, frontView, backId, backView, leftId, leftView, rightId, rightView) 对应
             cameraManager.initCameras(
-                    cameraIds[0], textureFront,  // front位置使用 textureFront
-                    cameraIds[1], textureBack,   // back位置使用 textureBack
+                    null, null,
+                    null, null,                    
                     cameraIds[0], textureLeft,   // left位置使用 textureLeft
                     cameraIds[1], textureRight   // right位置使用 textureRight
             );
