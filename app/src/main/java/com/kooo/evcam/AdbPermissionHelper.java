@@ -174,6 +174,9 @@ public class AdbPermissionHelper {
         log(callback, "=== ADB 一键获取权限 ===");
 
         try {
+            // 0. 先断开重连，避免 ADB 被占用
+            resetAdbConnection(callback);
+
             // 1. 加载或生成 RSA 密钥对（用于 ADB 认证）
             loadOrGenerateKeyPair();
 
@@ -241,6 +244,37 @@ public class AdbPermissionHelper {
             notifyComplete(callback, false);
         } finally {
             closeSocket();
+        }
+    }
+
+    /**
+     * 重置 ADB 连接：先断开可能存在的旧连接，再短暂等待 ADB daemon 释放资源。
+     * 在每次 ADB 操作前调用，避免 ADB 被其他进程或残留连接占用导致失败。
+     */
+    private void resetAdbConnection(Callback callback) {
+        // 1. 关闭自身可能残留的旧连接
+        closeSocket();
+
+        // 2. 尝试连接后立即断开，迫使 ADB daemon 释放现有会话
+        log(callback, "重置 ADB 连接...");
+        Socket probe = null;
+        try {
+            probe = new Socket();
+            probe.connect(new InetSocketAddress(ADB_HOST, ADB_PORT), CONNECT_TIMEOUT_MS);
+            probe.close();
+            probe = null;
+            // 等待 ADB daemon 完成清理
+            Thread.sleep(800);
+            log(callback, "✓ ADB 连接已重置");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            // 连接失败说明端口空闲或 ADB 未开启，无需重置
+            AppLog.d(TAG, "ADB reset: port not occupied or not available");
+        } finally {
+            if (probe != null) {
+                try { probe.close(); } catch (Exception ignored) {}
+            }
         }
     }
 
@@ -314,6 +348,9 @@ public class AdbPermissionHelper {
         log(callback, "=== ADB 安装更新 ===");
 
         try {
+            // 先断开重连，避免 ADB 被占用
+            resetAdbConnection(callback);
+
             loadOrGenerateKeyPair();
 
             socket = tryConnect(callback);
@@ -500,6 +537,9 @@ public class AdbPermissionHelper {
 
     private void doExecuteScript(String scriptPath, Callback callback) {
         try {
+            // 先断开重连，避免 ADB 被占用
+            resetAdbConnection(callback);
+
             loadOrGenerateKeyPair();
 
             socket = tryConnect(callback);
